@@ -76,7 +76,18 @@ func (db *Database) Find(key []byte) (record Record, index int, err error) {
 	return record, -1, fmt.Errorf("record is not found in cache")
 }
 
-func (db *Database) Pop(key []byte) (record Record, err error) {
+func (db *Database) PopIndex(index int) (record Record, err error) {
+	if index > db.GetSize() {
+		return record, fmt.Errorf("index is out of range")
+	}
+
+	db.records[index] = db.records[db.GetSize()]
+	db.records = db.records[:db.GetSize()]
+	db.Percolate(index)
+	return record, nil
+}
+
+func (db *Database) PopKey(key []byte) (record Record, err error) {
 	record, index, err := db.Find(key)
 	if err != nil {
 		return record, err

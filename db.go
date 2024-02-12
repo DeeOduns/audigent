@@ -74,7 +74,7 @@ func (db *Database) RemoveExpiredRecords() {
 		numRemoved := 0
 		for i := 0; i < len(selectedValues); i++ {
 			if selectedValues[i].expiryTime.After(time.Now()) {
-				db.PopIndex(i) // Remove record from database
+				db.PopAtIndex(i) // Remove record from database
 				numRemoved++
 			}
 		}

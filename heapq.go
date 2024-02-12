@@ -17,7 +17,7 @@ func rightIdx(pos int) int {
 	return pos*2 + 1
 }
 
-// return true is key1 < key2
+// return true if key1 < key2
 func comparator(key1, key2 []byte) bool {
 	result := bytes.Compare(key1, key2)
 	return result < 0
@@ -76,7 +76,8 @@ func (db *Database) Find(key []byte) (record Record, index int, err error) {
 	return record, -1, fmt.Errorf("record is not found in cache")
 }
 
-func (db *Database) PopIndex(index int) (record Record, err error) {
+// remove record at specified index
+func (db *Database) PopAtIndex(index int) (record Record, err error) {
 	dbSize := db.GetSize()
 	if index > dbSize {
 		return record, fmt.Errorf("index is out of range")
@@ -88,7 +89,8 @@ func (db *Database) PopIndex(index int) (record Record, err error) {
 	return record, nil
 }
 
-func (db *Database) PopKey(key []byte) (record Record, err error) {
+// remove record with specified key name, if exists
+func (db *Database) PopAtKey(key []byte) (record Record, err error) {
 	record, index, err := db.Find(key)
 	if err != nil {
 		return record, err
@@ -101,6 +103,7 @@ func (db *Database) PopKey(key []byte) (record Record, err error) {
 	return record, nil
 }
 
+// get number of records in cache
 func (db *Database) GetSize() int {
 	return len(db.records) - 1
 }

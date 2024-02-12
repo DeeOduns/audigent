@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"bytes"
 	"time"
 )
 
@@ -28,13 +27,12 @@ func (db *Database) Set(key, value []byte, ttl time.Duration) {
 	expiry_time := time.Now().Add(ttl)
 
 	// Check if the key already exists, if yes, update the value
-	for i := range db.records {
-		if bytes.Equal(db.records[i].key, key) {
-			db.records[i].value = value
-			db.records[i].ttl = ttl
-			db.records[i].expiry_time = expiry_time
-			return
-		}
+	_, index, err := db.Find(key)
+	if err == nil {
+		db.records[index].value = value
+		db.records[index].ttl = ttl
+		db.records[index].expiry_time = expiry_time
+		return
 	}
 
 	// If the key doesn't exist, add the new record

@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"math/rand"
 	"time"
 )
 
@@ -55,6 +56,29 @@ func (db *Database) Get(key []byte) ([]byte, time.Duration) {
 }
 
 func (db *Database) RemoveStaleRecords() {
-	// TO DO
+	checkNum := 20
+	repeatCleanUp := true
+	repeatCleanUpThreshold := int(20 * 0.25)
 
+	dbSize := db.GetSize()
+	rand.Seed(time.Now().UnixNano()) // Seed the random number generator
+	for repeatCleanUp && dbSize >= checkNum {
+		selectedValues := make([]Record, checkNum)
+
+		for i := 0; i < checkNum; i++ {
+			randomIndex := rand.Intn(dbSize-1) + 1 // Generate random index
+			selectedValues[i] = db.records[randomIndex]
+		}
+
+		numRemoved := 0
+		for i := 0; i < len(selectedValues); i++ {
+			if selectedValues[i].expiry_time.After(time.Now()) {
+				// Remove record from database
+				db.PopIndex(i)
+				numRemoved++
+			}
+		}
+
+		repeatCleanUp = (numRemoved > repeatCleanUpThreshold)
+	}
 }

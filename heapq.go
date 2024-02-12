@@ -77,30 +77,30 @@ func (db *Database) Find(key []byte) (record Record, index int, err error) {
 }
 
 // remove record at specified index
-func (db *Database) PopAtIndex(index int) (record Record, err error) {
+func (db *Database) PopAtIndex(index int) error {
 	dbSize := db.GetSize()
 	if index > dbSize {
-		return record, fmt.Errorf("index is out of range")
+		return fmt.Errorf("index is out of range")
 	}
 
 	db.records[index], db.records[dbSize] = db.records[dbSize], db.records[index]
 	db.records = db.records[:dbSize]
 	db.Percolate(index)
-	return record, nil
+	return nil
 }
 
 // remove record with specified key name, if exists
-func (db *Database) PopAtKey(key []byte) (record Record, err error) {
-	record, index, err := db.Find(key)
+func (db *Database) PopAtKey(key []byte) error {
+	_, index, err := db.Find(key)
 	if err != nil {
-		return record, err
+		return err
 	}
 
 	dbSize := db.GetSize()
 	db.records[index], db.records[dbSize] = db.records[dbSize], db.records[index]
 	db.records = db.records[:dbSize]
 	db.Percolate(index)
-	return record, nil
+	return nil
 }
 
 // get number of records in cache

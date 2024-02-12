@@ -1,80 +1,74 @@
-package main
+package cache
 
 import (
 	"bytes"
-	"fmt"
 	"time"
 )
 
-// KeyValue represents a key-value pair.
-type KeyValue struct {
-	key   []byte
-	value []byte
-	ttl   time.Duration
+// Record represents the db record that is added or retrieved
+type Record struct {
+	key         []byte
+	value       []byte
+	ttl         time.Duration
+	expiry_time time.Time
 }
 
-// DB represents a custom map data structure.
-type DB struct {
-	entries []KeyValue
+// Database represents the cache
+type Database struct {
+	size    int
+	records []Record
 }
 
-// Put adds a key-value pair to the map.
-func (m *DB) Put(key, value []byte, ttl time.Duration) {
+func CreateDatabase(capacity int) *Database {
+	return &Database{
+		size:    0,
+		records: make([]Record, capacity+1, capacity+1),
+	}
+}
+
+// Sets a record into the cache
+func (db *Database) Set(key, value []byte, ttl time.Duration) {
+	// add absolute expiry time for the record, for later clean up
+	expiry_time := time.Now().Add(ttl)
+
 	// Check if the key already exists, if yes, update the value
-	for i := range m.entries {
-		if bytes.Equal(m.entries[i].key, key) {
-			m.entries[i].value = value
+	for i := range db.records {
+		if bytes.Equal(db.records[i].key, key) {
+			db.records[i].value = value
+			db.records[i].ttl = ttl
+			db.records[i].expiry_time = expiry_time
 			return
 		}
 	}
-	// If the key doesn't exist, append a new entry
-	m.entries = append(m.entries, KeyValue{key: key, value: value, ttl: ttl})
+
+	// If the key doesn't exist, add the new record
+	new_record := Record{
+		key:         key,
+		value:       value,
+		ttl:         ttl,
+		expiry_time: expiry_time,
+	}
+	db.Push(new_record)
 }
 
 // Get retrieves the value associated with the given key.
-func (m *DB) Get(key []byte) ([]byte, bool) {
-	for _, entry := range m.entries {
-		if bytes.Equal(entry.key, key) {
-			return entry.value, true
-		}
+func (db *Database) Get(key []byte) ([]byte, time.Duration) {
+	record, _, err := db.Find(key)
+	if err != nil {
+		return nil, -1
 	}
-	return nil, false
+
+	return record.value, record.ttl
 }
 
 // Remove deletes the key-value pair associated with the given key.
-func (m *DB) Remove(key []byte) {
-	for i, entry := range m.entries {
-		if bytes.Equal(entry.key, key) {
-			// Delete the entry by replacing it with the last entry and truncating the slice
-			m.entries[i] = m.entries[len(m.entries)-1]
-			m.entries = m.entries[:len(m.entries)-1]
+func (m *Database) Remove(key []byte) {
+	for i, record := range m.records {
+		if bytes.Equal(record.key, key) {
+			// Delete the record by replacing it with the last record and truncating the slice
+			m.records[i] = m.records[len(m.records)-1]
+			m.records = m.records[:len(m.records)-1]
 			return
 		}
-	}
-}
-
-func main() {
-	// Create a new DB
-	myMap := DB{}
-
-	// Put some key-value pairs
-	myMap.Put([]byte("name"), []byte("John"), 1000000000)
-	myMap.Put([]byte("age"), []byte("30"), 1000000000)
-	myMap.Put([]byte("city"), []byte("New York"), 1000000000)
-
-	// Retrieve values
-	if value, ok := myMap.Get([]byte("name")); ok {
-		fmt.Println("Name:", string(value))
-	}
-	if value, ok := myMap.Get([]byte("age")); ok {
-		fmt.Println("Age:", string(value))
-	}
-
-	// Remove a key-value pair
-	myMap.Remove([]byte("city"))
-
-	// Check if a key exists
-	if _, ok := myMap.Get([]byte("city")); !ok {
-		fmt.Println("City not found")
 	}
 }

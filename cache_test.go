@@ -19,9 +19,9 @@ func TestGet(t *testing.T) {
 
 	// check existing key value
 	value, _ := myDB.Get([]byte("key76"))
-	expected_value := "value76"
-	if !bytes.Equal(value, []byte(expected_value)) {
-		t.Errorf("Incorrect value, got: %s, expects: %s.", value, expected_value)
+	expectedValue := "value76"
+	if !bytes.Equal(value, []byte(expectedValue)) {
+		t.Errorf("Incorrect value, got: %s, expects: %s.", value, expectedValue)
 	}
 
 	// check for key that does not exist in DB

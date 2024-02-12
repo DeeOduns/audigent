@@ -17,9 +17,9 @@ func rightIdx(pos int) int {
 	return pos*2 + 1
 }
 
-// return true is a < b
-func comparator(a, b []byte) bool {
-	result := bytes.Compare(a, b)
+// return true is key1 < key2
+func comparator(key1, key2 []byte) bool {
+	result := bytes.Compare(key1, key2)
 	return result < 0
 }
 

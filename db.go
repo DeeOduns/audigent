@@ -15,16 +15,11 @@ type Record struct {
 
 // Database represents the cache
 type Database struct {
-	// TODO: should be a dynamic array instead (append)
-	size    int
 	records []Record
 }
 
-func CreateDatabase(capacity int) *Database {
-	return &Database{
-		size:    0,
-		records: make([]Record, capacity+1, capacity+1),
-	}
+func CreateDatabase() *Database {
+	return &Database{records: make([]Record, 1, 1)}
 }
 
 // Sets a record into the cache
@@ -58,18 +53,5 @@ func (db *Database) Get(key []byte) ([]byte, time.Duration) {
 	if err != nil {
 		return nil, -1
 	}
-
 	return record.value, record.ttl
-}
-
-// Remove deletes the key-value pair associated with the given key.
-func (m *Database) Remove(key []byte) {
-	for i, record := range m.records {
-		if bytes.Equal(record.key, key) {
-			// Delete the record by replacing it with the last record and truncating the slice
-			m.records[i] = m.records[len(m.records)-1]
-			m.records = m.records[:len(m.records)-1]
-			return
-		}
-	}
 }

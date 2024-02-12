@@ -9,7 +9,7 @@ import (
 func main() {
 	// Create a new DB/cache
 	var myDB cache.Cache
-	myDB = cache.CreateDatabase(1000)
+	myDB = cache.CreateDatabase()
 
 	// Add some values to cache
 	ttl := time.Duration(10) * time.Minute

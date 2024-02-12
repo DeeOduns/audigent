@@ -8,7 +8,7 @@ import (
 
 func TestGet(t *testing.T) {
 	var myDB Cache
-	myDB = CreateDatabase(1000)
+	myDB = CreateDatabase()
 	var numOfKeys = 100
 	// add key0 -> value0, key1 -> value1,... to myDB
 	for i := 0; i < numOfKeys; i++ {
@@ -24,7 +24,7 @@ func TestGet(t *testing.T) {
 		t.Errorf("Incorrect value, got: %s, expects: %s.", value, expected_value)
 	}
 
-	// check key that does not exist in DB
+	// check for key that does not exist in DB
 	value, _ = myDB.Get([]byte("key206"))
 	if value != nil {
 		t.Errorf("value should not exist")

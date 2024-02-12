@@ -28,16 +28,13 @@ func (db *Database) Swap(a int, b int) {
 }
 
 func (db *Database) Percolate(pos int) {
-	if leftIdx(pos) > db.size {
-		return
-	}
-
 	var cur = &db.records[pos]
 	var left = &db.records[leftIdx(pos)]
 	var right *Record
-	if rightIdx(pos) <= db.size {
+	if rightIdx(pos) <= db.GetSize() {
 		right = &db.records[rightIdx(pos)]
 	}
+
 	if comparator(left.key, cur.key) || comparator(right.key, cur.key) {
 		if comparator(left.key, right.key) {
 			db.Swap(pos, leftIdx(pos))
@@ -50,13 +47,8 @@ func (db *Database) Percolate(pos int) {
 }
 
 func (db *Database) Push(record Record) error {
-	if db.size >= len(db.records) {
-		return fmt.Errorf("no space, cache is full")
-	}
-	db.size++
-	cur := db.size
-
-	db.records[cur] = record
+	db.records = append(db.records, record)
+	cur := db.GetSize()
 	for comparator((&db.records[cur]).key, (&db.records[parentIdx(cur)]).key) {
 		db.Swap(cur, parentIdx(cur))
 		cur = parentIdx(cur)
@@ -67,7 +59,7 @@ func (db *Database) Push(record Record) error {
 
 // find record using binary search
 func (db *Database) Find(key []byte) (record Record, index int, err error) {
-	high := db.size
+	high := db.GetSize()
 	low := 1
 	var mid int
 
@@ -85,17 +77,17 @@ func (db *Database) Find(key []byte) (record Record, index int, err error) {
 }
 
 func (db *Database) Pop(key []byte) (record Record, err error) {
-	if db.size < 1 {
-		return record, fmt.Errorf("cache is empty")
-	}
-
 	record, index, err := db.Find(key)
 	if err != nil {
 		return record, err
 	}
 
-	db.records[index] = db.records[db.size]
-	db.size--
+	db.records[index] = db.records[db.GetSize()]
+	db.records = db.records[:db.GetSize()]
 	db.Percolate(index)
 	return record, nil
+}
+
+func (db *Database) GetSize() int {
+	return len(db.records) - 1
 }

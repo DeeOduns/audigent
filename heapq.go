@@ -77,12 +77,13 @@ func (db *Database) Find(key []byte) (record Record, index int, err error) {
 }
 
 func (db *Database) PopIndex(index int) (record Record, err error) {
-	if index > db.GetSize() {
+	dbSize := db.GetSize()
+	if index > dbSize {
 		return record, fmt.Errorf("index is out of range")
 	}
 
-	db.records[index] = db.records[db.GetSize()]
-	db.records = db.records[:db.GetSize()]
+	db.records[index], db.records[dbSize] = db.records[dbSize], db.records[index]
+	db.records = db.records[:dbSize]
 	db.Percolate(index)
 	return record, nil
 }
@@ -93,8 +94,9 @@ func (db *Database) PopKey(key []byte) (record Record, err error) {
 		return record, err
 	}
 
-	db.records[index] = db.records[db.GetSize()]
-	db.records = db.records[:db.GetSize()]
+	dbSize := db.GetSize()
+	db.records[index], db.records[dbSize] = db.records[dbSize], db.records[index]
+	db.records = db.records[:dbSize]
 	db.Percolate(index)
 	return record, nil
 }

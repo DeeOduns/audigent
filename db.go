@@ -15,6 +15,7 @@ type Record struct {
 
 // Database represents the cache
 type Database struct {
+	// TODO: should be a dynamic array instead (append)
 	size    int
 	records []Record
 }

@@ -51,7 +51,7 @@ func (db *Database) Percolate(pos int) {
 
 func (db *Database) Push(record Record) error {
 	if db.size >= len(db.records) {
-		return fmt.Errorf("pushing into a full container")
+		return fmt.Errorf("no space, cache is full")
 	}
 	db.size++
 	cur := db.size
@@ -81,12 +81,12 @@ func (db *Database) Find(key []byte) (record Record, index int, err error) {
 			low = mid + 1
 		}
 	}
-	return record, -1, fmt.Errorf("no record found in db")
+	return record, -1, fmt.Errorf("record is not found in cache")
 }
 
 func (db *Database) Pop(key []byte) (record Record, err error) {
 	if db.size < 1 {
-		return record, fmt.Errorf("popping from an empty queue")
+		return record, fmt.Errorf("cache is empty")
 	}
 
 	record, index, err := db.Find(key)
@@ -97,14 +97,5 @@ func (db *Database) Pop(key []byte) (record Record, err error) {
 	db.records[index] = db.records[db.size]
 	db.size--
 	db.Percolate(index)
-	return record, nil
-}
-
-func (db *Database) Peek() (record Record, err error) {
-	if db.size < 1 {
-		return record, fmt.Errorf("peeking into an empty queue")
-	}
-
-	record = db.records[1]
 	return record, nil
 }

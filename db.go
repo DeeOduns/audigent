@@ -58,10 +58,10 @@ func (db *Database) Get(key []byte) ([]byte, time.Duration) {
 func (db *Database) RemoveStaleRecords() {
 	checkNum := 20
 	repeatCleanUp := true
-	repeatCleanUpThreshold := int(20 * 0.25)
+	repeatCleanUpThreshold := int(checkNum / 4)
 
 	dbSize := db.GetSize()
-	rand.Seed(time.Now().UnixNano()) // Seed the random number generator
+	rand.Seed(time.Now().UnixNano())
 	for repeatCleanUp && dbSize >= checkNum {
 		selectedValues := make([]Record, checkNum)
 
@@ -73,8 +73,7 @@ func (db *Database) RemoveStaleRecords() {
 		numRemoved := 0
 		for i := 0; i < len(selectedValues); i++ {
 			if selectedValues[i].expiry_time.After(time.Now()) {
-				// Remove record from database
-				db.PopIndex(i)
+				db.PopIndex(i) // Remove record from database
 				numRemoved++
 			}
 		}

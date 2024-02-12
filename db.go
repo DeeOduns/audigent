@@ -7,10 +7,10 @@ import (
 
 // Record represents the db record that is added or retrieved
 type Record struct {
-	key         []byte
-	value       []byte
-	ttl         time.Duration
-	expiry_time time.Time
+	key        []byte
+	value      []byte
+	ttl        time.Duration
+	expiryTime time.Time
 }
 
 // Database represents the cache
@@ -25,23 +25,23 @@ func CreateDatabase() *Database {
 // Sets a record into the cache
 func (db *Database) Set(key, value []byte, ttl time.Duration) {
 	// add absolute expiry time for the record, for later clean up
-	expiry_time := time.Now().Add(ttl)
+	expiryTime := time.Now().Add(ttl)
 
 	// Check if the key already exists, if yes, update the value
 	_, index, err := db.Find(key)
 	if err == nil {
 		db.records[index].value = value
 		db.records[index].ttl = ttl
-		db.records[index].expiry_time = expiry_time
+		db.records[index].expiryTime = expiryTime
 		return
 	}
 
 	// If the key doesn't exist, add the new record
 	new_record := Record{
-		key:         key,
-		value:       value,
-		ttl:         ttl,
-		expiry_time: expiry_time,
+		key:        key,
+		value:      value,
+		ttl:        ttl,
+		expiryTime: expiryTime,
 	}
 	db.Push(new_record)
 }
@@ -55,7 +55,8 @@ func (db *Database) Get(key []byte) ([]byte, time.Duration) {
 	return record.value, record.ttl
 }
 
-func (db *Database) RemoveStaleRecords() {
+// Implements active removal of expired records in cache
+func (db *Database) RemoveExpiredRecords() {
 	checkNum := 20
 	repeatCleanUp := true
 	repeatCleanUpThreshold := int(checkNum / 4)
@@ -72,12 +73,11 @@ func (db *Database) RemoveStaleRecords() {
 
 		numRemoved := 0
 		for i := 0; i < len(selectedValues); i++ {
-			if selectedValues[i].expiry_time.After(time.Now()) {
+			if selectedValues[i].expiryTime.After(time.Now()) {
 				db.PopIndex(i) // Remove record from database
 				numRemoved++
 			}
 		}
-
 		repeatCleanUp = (numRemoved > repeatCleanUpThreshold)
 	}
 }

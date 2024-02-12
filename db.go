@@ -55,3 +55,8 @@ func (db *Database) Get(key []byte) ([]byte, time.Duration) {
 	}
 	return record.value, record.ttl
 }
+
+func (db *Database) RemoveStaleRecords() {
+	// TO DO
+
+}

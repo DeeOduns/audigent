@@ -20,7 +20,7 @@ type Database struct {
 }
 
 func CreateDatabase() *Database {
-	return &Database{records: make([]Record, 1, 1)}
+	return &Database{records: []Record{}}
 }
 
 // Sets a record into the cache
@@ -61,13 +61,14 @@ func (db *Database) RemoveExpiredRecords(checkSize int) {
 	repeatCleanUp := true
 	repeatCleanUpThreshold := int(checkSize / 4)
 
-	fmt.Printf("Active removal process begins, current size: %d...\n", db.GetSize())
-	for repeatCleanUp && db.GetSize() >= checkSize {
+	dbSize := db.GetSize()
+	fmt.Printf("Active removal process begins, current size: %d...\n", dbSize)
+	for repeatCleanUp && dbSize >= checkSize {
 		numRemoved := 0
 		for i, dbSize := 0, db.GetSize(); i < checkSize && dbSize > 1; i, dbSize = i+1, db.GetSize() {
-			randomCheckIndex := rand.Intn(db.GetSize()-1) + 1 // Generate random idx
+			randomCheckIndex := rand.Intn(dbSize-1) + 1 // Generate random idx
 			if db.records[randomCheckIndex].expiryTime.Before(time.Now()) {
-				db.PopAtIndex(randomCheckIndex)
+				db.RemoveAtIndex(randomCheckIndex)
 				numRemoved++
 			}
 		}

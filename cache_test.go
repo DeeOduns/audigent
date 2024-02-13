@@ -10,18 +10,12 @@ import (
 
 func BenchmarkGet(b *testing.B) {
 	myDB := CreateDatabase()
-	// add key0 -> value0, key1 -> value1,... to myDB
+	// add key0:value0, key1:value1,... to myDB
 	for n := 0; n <= b.N; n++ {
 		key := fmt.Sprintf("key%d", n)
 		value := fmt.Sprintf("value%d", n)
 		myDB.Set([]byte(key), []byte(value), 10)
 	}
-
-	/*
-		for index, element := range myDB.records {
-			fmt.Println("At index", index, "key is", string(element.key), "key arr is", element.value)
-		}
-	*/
 
 	// check randomly for an existing key-value in cache
 	var checkIndex = 0
@@ -56,6 +50,7 @@ func BenchmarkSetAllocation(b *testing.B) {
 		b.Errorf("cache should produce one 1 allocation per operation")
 	}
 
+	// set record with same key to cache
 	myDB = CreateDatabase()
 	for n := 0; n < b.N; n++ {
 		myDB.Set([]byte("name"), []byte("john"), 10)

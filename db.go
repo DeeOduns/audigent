@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -28,11 +29,11 @@ func (db *Database) Set(key, value []byte, ttl time.Duration) {
 	expiryTime := time.Now().Add(ttl)
 
 	// Check if the key already exists, if yes, update the value
-	_, index, err := db.Find(key)
+	_, idx, err := db.Find(key)
 	if err == nil {
-		db.records[index].value = value
-		db.records[index].ttl = ttl
-		db.records[index].expiryTime = expiryTime
+		db.records[idx].value = value
+		db.records[idx].ttl = ttl
+		db.records[idx].expiryTime = expiryTime
 		return
 	}
 
@@ -56,28 +57,21 @@ func (db *Database) Get(key []byte) ([]byte, time.Duration) {
 }
 
 // Implements active removal of expired records in cache
-func (db *Database) RemoveExpiredRecords() {
-	checkNum := 20
+func (db *Database) RemoveExpiredRecords(checkSize int) {
 	repeatCleanUp := true
-	repeatCleanUpThreshold := int(checkNum / 4)
+	repeatCleanUpThreshold := int(checkSize / 4)
 
-	dbSize := db.GetSize()
-	rand.Seed(time.Now().UnixNano())
-	for repeatCleanUp && dbSize >= checkNum {
-		selectedValues := make([]Record, checkNum)
-
-		for i := 0; i < checkNum; i++ {
-			randomIndex := rand.Intn(dbSize-1) + 1 // Generate random index
-			selectedValues[i] = db.records[randomIndex]
-		}
-
+	fmt.Printf("Active removal process begins, current size: %d...\n", db.GetSize())
+	for repeatCleanUp && db.GetSize() >= checkSize {
 		numRemoved := 0
-		for i := 0; i < len(selectedValues); i++ {
-			if selectedValues[i].expiryTime.After(time.Now()) {
-				db.PopAtIndex(i) // Remove record from database
+		for i, dbSize := 0, db.GetSize(); i < checkSize && dbSize > 1; i, dbSize = i+1, db.GetSize() {
+			randomCheckIndex := rand.Intn(db.GetSize()-1) + 1 // Generate random idx
+			if db.records[randomCheckIndex].expiryTime.Before(time.Now()) {
+				db.PopAtIndex(randomCheckIndex)
 				numRemoved++
 			}
 		}
 		repeatCleanUp = (numRemoved > repeatCleanUpThreshold)
 	}
+	fmt.Printf("Active removal complete! new size: %d\n", db.GetSize())
 }

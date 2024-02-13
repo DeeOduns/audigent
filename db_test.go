@@ -73,13 +73,12 @@ func BenchmarkRemoveExpiredRecords(b *testing.B) {
 	}
 
 	var defaultCheckSize = 25
+	// cache lower than defaultCheckSize is skipped in this test
 	if b.N > defaultCheckSize {
 		myDB.RemoveExpiredRecords(defaultCheckSize)
 		if myDB.GetSize() >= defaultCheckSize {
 			b.Errorf("Expired records not deleted. Added %d records, %d records left", b.N, myDB.GetSize())
 		}
-	} else {
-		fmt.Printf("Cache size is to small for cleanup. Only added %d records.\n", myDB.GetSize())
 	}
 }
 
@@ -100,7 +99,5 @@ func BenchmarkRemoveExpiredRecordsNoOp(b *testing.B) {
 		if myDB.GetSize() != b.N {
 			b.Errorf("Unexpectedly removed records. Added %d records, %d records left", b.N, myDB.GetSize())
 		}
-	} else {
-		fmt.Printf("Cache size is to small for cleanup. Only added %d records.\n", myDB.GetSize())
 	}
 }

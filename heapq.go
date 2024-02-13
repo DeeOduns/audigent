@@ -9,12 +9,20 @@ func parentIdx(pos int) int {
 	return pos / 2
 }
 
-func leftIdx(pos int) int {
-	return pos * 2
+func leftIdx(pos, max int) int {
+	var idx = pos * 2
+	if idx < max {
+		return idx
+	}
+	return max
 }
 
-func rightIdx(pos int) int {
-	return pos*2 + 1
+func rightIdx(pos, max int) int {
+	var idx = pos*2 + 1
+	if idx < max {
+		return idx
+	}
+	return max
 }
 
 // return true if key1 < key2
@@ -28,20 +36,21 @@ func (db *Database) Swap(a int, b int) {
 }
 
 func (db *Database) Percolate(pos int) {
+	var dbSize = db.GetSize()
 	var cur = &db.records[pos]
-	var left = &db.records[leftIdx(pos)]
+	var left = &db.records[leftIdx(pos, dbSize)]
 	var right *Record
-	if rightIdx(pos) <= db.GetSize() {
-		right = &db.records[rightIdx(pos)]
+	if rightIdx(pos, dbSize) <= db.GetSize() {
+		right = &db.records[rightIdx(pos, dbSize)]
 	}
 
 	if comparator(left.key, cur.key) || comparator(right.key, cur.key) {
 		if comparator(left.key, right.key) {
-			db.Swap(pos, leftIdx(pos))
-			db.Percolate(leftIdx(pos))
+			db.Swap(pos, leftIdx(pos, dbSize))
+			db.Percolate(leftIdx(pos, dbSize))
 		} else {
-			db.Swap(pos, rightIdx(pos))
-			db.Percolate(rightIdx(pos))
+			db.Swap(pos, rightIdx(pos, dbSize))
+			db.Percolate(rightIdx(pos, dbSize))
 		}
 	}
 }
@@ -58,7 +67,7 @@ func (db *Database) Push(record Record) error {
 }
 
 // find record using binary search
-func (db *Database) Find(key []byte) (record Record, index int, err error) {
+func (db *Database) Find(key []byte) (record Record, idx int, err error) {
 	high := db.GetSize()
 	low := 1
 	var mid int
@@ -76,30 +85,30 @@ func (db *Database) Find(key []byte) (record Record, index int, err error) {
 	return record, -1, fmt.Errorf("record is not found in cache")
 }
 
-// remove record at specified index
-func (db *Database) PopAtIndex(index int) error {
+// remove record at specified idx
+func (db *Database) PopAtIndex(idx int) error {
 	dbSize := db.GetSize()
-	if index > dbSize {
-		return fmt.Errorf("index is out of range")
+	if idx > dbSize {
+		return fmt.Errorf("idx is out of range")
 	}
 
-	db.records[index], db.records[dbSize] = db.records[dbSize], db.records[index]
+	db.records[idx], db.records[dbSize] = db.records[dbSize], db.records[idx]
 	db.records = db.records[:dbSize]
-	db.Percolate(index)
+	db.Percolate(idx)
 	return nil
 }
 
 // remove record with specified key name, if exists
 func (db *Database) PopAtKey(key []byte) error {
-	_, index, err := db.Find(key)
+	_, idx, err := db.Find(key)
 	if err != nil {
 		return err
 	}
 
 	dbSize := db.GetSize()
-	db.records[index], db.records[dbSize] = db.records[dbSize], db.records[index]
+	db.records[idx], db.records[dbSize] = db.records[dbSize], db.records[idx]
 	db.records = db.records[:dbSize]
-	db.Percolate(index)
+	db.Percolate(idx)
 	return nil
 }
 

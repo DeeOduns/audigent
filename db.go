@@ -44,7 +44,7 @@ func (db *Database) Set(key, value []byte, ttl time.Duration) {
 		ttl:        ttl,
 		expiryTime: expiryTime,
 	}
-	db.Push(new_record)
+	db.Add(new_record)
 }
 
 // Get retrieves the value associated with the given key.

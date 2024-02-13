@@ -29,11 +29,11 @@ func (db *Database) Set(key, value []byte, ttl time.Duration) {
 	expiryTime := time.Now().Add(ttl)
 
 	// Check if the key already exists, if yes, update the value
-	_, idx, err := db.Find(key)
+	record, _, err := db.Find(key)
 	if err == nil {
-		db.records[idx].value = value
-		db.records[idx].ttl = ttl
-		db.records[idx].expiryTime = expiryTime
+		record.value = value
+		record.ttl = ttl
+		record.expiryTime = expiryTime
 		return
 	}
 

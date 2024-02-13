@@ -3,6 +3,7 @@ package cache
 import (
 	"bytes"
 	"fmt"
+	"slices"
 	"sort"
 )
 
@@ -24,22 +25,18 @@ func (db *Database) Add(record Record) {
 }
 
 // find record using binary search
-func (db *Database) Find(key []byte) (record Record, idx int, err error) {
-	high := db.GetSize() - 1
-	low := 0
-	var mid int
+func (db *Database) Find(key []byte) (record *Record, idx int, err error) {
+	idx, found := slices.BinarySearchFunc(
+		db.records, Record{key: key}, func(a, b Record) int {
+			return bytes.Compare(a.key, b.key)
+		},
+	)
 
-	for low <= high {
-		mid = (high + low) / 2
-		if bytes.Equal(db.records[mid].key, key) {
-			return db.records[mid], mid, nil
-		} else if comparator(key, db.records[mid].key) {
-			high = mid - 1
-		} else {
-			low = mid + 1
-		}
+	if found {
+		return &db.records[idx], idx, nil
+	} else {
+		return record, idx, fmt.Errorf("record is not found in cache")
 	}
-	return record, -1, fmt.Errorf("record is not found in cache")
 }
 
 // remove record at specified idx

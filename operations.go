@@ -24,6 +24,22 @@ func (db *Database) Add(record Record) {
 	db.Sort()
 }
 
+func (db *Database) Add2(record Record) {
+	_, idx, _ := db.Find(record.key) // find index to insert new record in order
+	if idx == db.GetSize() {
+		db.records = append(db.records, record)
+	} else {
+		db.records = slices.Insert(db.records, idx, record)
+	}
+}
+
+func (db *Database) Add3(record Record) {
+	_, idx, _ := db.Find(record.key)              // find index to insert new record in order
+	db.records = append(db.records, *new(Record)) // make room for new value
+	copy(db.records[idx+1:], db.records[idx:])
+	db.records[idx] = record
+}
+
 // find record using binary search
 func (db *Database) Find(key []byte) (record *Record, idx int, err error) {
 	idx, found := slices.BinarySearchFunc(
